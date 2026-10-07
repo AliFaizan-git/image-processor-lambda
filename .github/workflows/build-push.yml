@@ -45,13 +45,19 @@ jobs:
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
-      # - name: Update Lambda code
-      #   run: |
-      #     aws lambda update-function-code \
-      #       --function-name ${{ env.LAMBDA_FUNCTION }} \
-      #       --image-uri ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+      - name: Update Lambda code
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ env.LAMBDA_FUNCTION }} \
+            --image-uri ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
-      # - name: Wait for update to finish
-      #   run: |
-      #     aws lambda wait function-updated \
-      #       --function-name ${{ env.LAMBDA_FUNCTION }}
+      - name: Wait for update to finish
+        run: |
+          aws lambda wait function-updated \
+            --function-name ${{ env.LAMBDA_FUNCTION }}
+
+      - name: Update Lambda environment variables
+        run: |
+          aws lambda update-function-configuration \
+            --function-name ${{ env.LAMBDA_FUNCTION }} \
+            --environment "Variables={NOTIFY_MODE=api,BACKEND_URL=http://image-alb-234781079.eu-north-1.elb.amazonaws.com,LAMBDA_API_KEY=${{ secrets.LAMBDA_API_KEY }},MAX_WIDTH=2000,JPEG_QUALITY=80}"
