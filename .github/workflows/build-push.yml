@@ -23,8 +23,8 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::931814980669:role/GitHubActions-Deployment-Rolee
-          aws-region: eu-north-1
+          role-to-assume: 
+          aws-region:
 
       - name: Login to ECR
         id: ecr
@@ -60,4 +60,4 @@ jobs:
         run: |
           aws lambda update-function-configuration \
             --function-name ${{ env.LAMBDA_FUNCTION }} \
-            --environment "Variables={NOTIFY_MODE=api,BACKEND_URL=http://image-alb-234781079.eu-north-1.elb.amazonaws.com,LAMBDA_API_KEY=${{ secrets.LAMBDA_API_KEY }},MAX_WIDTH=2000,JPEG_QUALITY=80}"
+            --environment "Variables={NOTIFY_MODE=api,BACKEND_URL=xxxx ,LAMBDA_API_KEY=${{ secrets.LAMBDA_API_KEY }},MAX_WIDTH=2000,JPEG_QUALITY=80}"
