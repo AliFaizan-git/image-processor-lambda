@@ -45,19 +45,20 @@ jobs:
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
-      # - name: Update Lambda code
-      #   run: |
-      #     aws lambda update-function-code \
-      #       --function-name ${{ env.LAMBDA_FUNCTION }} \
-      #       --image-uri ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+     
+      - name: Check function exists
+        id: fn
+        run: |
+          if aws lambda get-function --function-name "$FUNCTION_NAME" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
 
-      # - name: Wait for update to finish
-      #   run: |
-      #     aws lambda wait function-updated \
-      #       --function-name ${{ env.LAMBDA_FUNCTION }}
-
-      # - name: Update Lambda environment variables
-      #   run: |
-      #     aws lambda update-function-configuration \
-      #       --function-name ${{ env.LAMBDA_FUNCTION }} \
-      #       --environment "Variables={NOTIFY_MODE=api,BACKEND_URL=xxxx ,LAMBDA_API_KEY=${{ secrets.LAMBDA_API_KEY }},MAX_WIDTH=2000,JPEG_QUALITY=80}"
+      - name: Update Lambda code
+        if: steps.fn.outputs.exists == 'true'
+        run: |
+          aws lambda update-function-code \
+            --function-name "$FUNCTION_NAME" \
+            --image-uri "${{ steps.ecr.outputs.registry }}/${ECR_REPOSITORY}:latest"
+          aws lambda wait function-updated --function-name "$FUNCTION_NAME"
